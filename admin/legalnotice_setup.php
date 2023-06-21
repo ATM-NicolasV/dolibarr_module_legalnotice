@@ -85,20 +85,20 @@ if ($action == 'save')
 	$error = 0;
 
 	$fk_country = GETPOST('fk_country');
-	$product_type = (int) GETPOST('product_type');
+	$product_type = (int) GETPOST('product_type'); // 1 0 => produit; 2 1 => service; 3 -1 => produit ET service; 4 -2 produit OU service
 	$is_assuj_tva = (int) GETPOST('is_assuj_tva');
-  $fk_typent = GETPOST('fk_typent');
+  	$fk_typent = GETPOST('fk_typent');
 	$mention = dol_html_entity_decode(GETPOST('mention', 'restricthtml'), ENT_QUOTES | ENT_HTML5, 'UTF-8', 1); // as well as dolibarr do for public notes and private notes
 	$rang = (int) GETPOST('rang');
 
 	if (is_array($fk_typent)) $fk_typent = implode(',', $fk_typent);
 	if (strpos($fk_typent, '-1') !== false) $fk_typent = '-1';
-  if (is_array($fk_country)) $fk_country = implode(',', $fk_country);
+  	if (is_array($fk_country)) $fk_country = implode(',', $fk_country);
 	if (strpos($fk_country, '-1') !== false) $fk_country = '-1'; // évite de selectionner la valeur "all" avec des pays
 	if (empty($fk_typent)) { setEventMessage($langs->trans('LegalNotice_FieldTypentRequired'), 'errors'); $error++; }
 	if (empty($fk_country)) { setEventMessage($langs->trans('LegalNotice_FieldCountryRequired'), 'errors'); $error++; }
-	if (!in_array($product_type, array(-2, -1, 0, 1))) { setEventMessage($langs->trans('LegalNotice_FieldProductTypeRequired'), 'errors'); $error++; }
-	if (!in_array($is_assuj_tva, array(-1, 0, 1))) { setEventMessage($langs->trans('LegalNotice_FieldVATUsedRequired'), 'errors'); $error++; }
+	if (!in_array($product_type, array(1, 2, 3, 4))) { setEventMessage($langs->trans('LegalNotice_FieldProductTypeRequired'), 'errors'); $error++; }
+	if (!in_array($is_assuj_tva, array(-2, 1, 2))) { setEventMessage($langs->trans('LegalNotice_FieldVATUsedRequired'), 'errors'); $error++; }
 	if (empty($mention)) { setEventMessage($langs->trans('LegalNotice_FieldMentionRequired'), 'errors'); $error++; }
 
 
@@ -107,11 +107,13 @@ if ($action == 'save')
 
 		$object->fk_country = $fk_country;
 		$object->product_type = $product_type;
-    $object->fk_typent = $fk_typent;
+    	$object->fk_typent = $fk_typent;
 		$object->is_assuj_tva = $is_assuj_tva;
 		$object->mention = $mention;
 		$object->rang = $rang;
-
+		// var_dump($is_assuj_tva);
+		// die();
+	
 		$object->create($user);
 
 		header('Location: '.dol_buildpath('/legalnotice/admin/legalnotice_setup.php', 1));
@@ -226,10 +228,12 @@ else
 	dol_print_error($db);
 }
 
-$TProductType = array(0 => $langs->trans('Product'), 1 => $langs->trans('Service'), -1 => $langs->trans('LegalNoticeProductAndService'), -2 => $langs->trans('LegalNoticeProductOrService'));
-$TVATused = array(0 => $langs->trans('No'), 1 => $langs->trans('Yes'), -1 => $langs->trans('LegalNoticeWhatEver'));
+$TProductType = array(1 => $langs->trans('Product'), 2 => $langs->trans('Service'), 3 => $langs->trans('LegalNoticeProductAndService'), 4 => $langs->trans('LegalNoticeProductOrService'));
+$TVATused = array(-2 => $langs->trans('No'), 1 => $langs->trans('Yes'), 2 => $langs->trans('LegalNoticeWhatEver'));
 $newToken = function_exists('newToken')?newToken():$_SESSION['newtoken'];
 
+// var_dump($TProductType);
+// die();
 
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">'; // Keep form because ajax_constantonoff return single link with <a> if the js is disabled
 print '<input type="hidden" name="action" value="save" />';

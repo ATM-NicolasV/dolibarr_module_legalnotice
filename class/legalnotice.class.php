@@ -25,7 +25,7 @@ class LegalNotice extends SeedObject
 		$this->fields=array(
 				'entity'=>array('type'=>'integer','index'=>true)
 				,'fk_country'=>array('type'=>'array') // peut contenir plusieurs fk ou '-1' pour tous
-				,'product_type'=>array('type'=>'integer') // 0 => produit; 1 => service; -1 => produit ET service; -2 produit OU service
+				,'product_type'=>array('type'=>'integer') // TODO : Modifier valeur des types en commentaires : 0 => produit; 1 => service; 2 => produit ET service; 3 produit OU service  
 				,'fk_typent'=>array('type'=>'typent') // peut contenir plusieurs fk ou '-1' pour tous
 				,'is_assuj_tva'=>array('type'=>'integer') // 0 = non, 1 = oui, -1 = les 2
 				,'mention'=>array('type'=>'text') // date, integer, string, float, array, text

@@ -85,24 +85,45 @@ class ActionsLegalNotice
 			// On parcours toutes les lignes de la facture pour connaitre les types de produit présent
 			foreach($object->lines as &$line) $TType[$line->product_type] = true;
 
-			if (count($TType) == 2) $product_type = -1;
-			else if(isset($TType[0])) $product_type = 0;
-			else $product_type = 1;
+			
 
+			if (count($TType) == 2)  {
+				$product_type = 3;
+			} else if(isset($TType[0]))  { 
+				$product_type = 1;
+				
+			}else  {
+				$product_type = 2;
+			}
+			
+			
 			$legal = new LegalNotice($this->db);
 			$TLegalNotice = $legal->fetchAll();
-
+			
 			foreach($TLegalNotice as &$legalNotice)
-			{
-				if ($object->thirdparty->tva_assuj != $legalNotice->is_assuj_tva && $legalNotice->is_assuj_tva != -1) continue;
-				if (!in_array($object->thirdparty->country_id, $legalNotice->fk_country) && !in_array(-1, $legalNotice->fk_country)) continue;
-				if (!in_array($object->thirdparty->typent_id, $legalNotice->fk_typent) && !in_array(-1, $legalNotice->fk_typent)) continue;
-				// -2 = Produit OU Service, donc on considère que c'est OK dans tout les cas et qu'il ne faut pas faire un "continue"
-				if ($product_type != $legalNotice->product_type && $legalNotice->product_type != -2) continue;
+			{			
+				if ($legalNotice->is_assuj_tva == -2) $legalNotice->is_assuj_tva = 0; // le 0 est enregistré en null en bdd je suppose du à la version de mariadb/mysql
+				// var_dump($object->thirdparty->typent_id, $legalNotice->is_assuj_tva);
+				// var_dump($object->thirdparty->tva_assuj != $legalNotice->is_assuj_tva, $legalNotice->is_assuj_tva != 1); 
 
+				var_dump('1 : ' . $object->thirdparty->tva_assuj, $legalNotice->is_assuj_tva, $legalNotice->is_assuj_tva != 1, $object->thirdparty->tva_assuj != $legalNotice->is_assuj_tva);
+				if ($object->thirdparty->tva_assuj != $legalNotice->is_assuj_tva && $legalNotice->is_assuj_tva != 1) continue;
+
+				var_dump('2 : ' . $object->thirdparty->country_id, $legalNotice->fk_country);
+				if (!in_array($object->thirdparty->country_id, $legalNotice->fk_country) && !in_array(-1, $legalNotice->fk_country)) continue;
+
+				var_dump('3 : ' . $object->thirdparty->typent_id, $legalNotice->fk_typent);
+				if (!in_array($object->thirdparty->typent_id, $legalNotice->fk_typent) && !in_array(-1, $legalNotice->fk_typent)) continue;
+
+				// 4 = Produit OU Service, donc on considère que c'est OK dans tout les cas et qu'il ne faut pas faire un "continue"
+				var_dump('4 : ' . $product_type, $legalNotice->product_type);
+				if ($product_type != $legalNotice->product_type && $legalNotice->product_type != 4) continue;
+				
 				if(! empty($conf->global->INVOICE_FREE_TEXT)) $conf->global->INVOICE_FREE_TEXT .= "\n<br />";
 				$conf->global->INVOICE_FREE_TEXT .= $legalNotice->mention;
+			
 				break;	// On s'arrête à la première mention légale qui réunit toutes les conditions
+				
 			}
 		}
 		if(in_array('propalcard', $TContext) && !empty($conf->global->LEGALNOTICE_MULTI_NOTICE_PROPAL) && !empty($object->array_options['options_legalnotice_selected_notice'])) {
